@@ -43,6 +43,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /forecast/week:
+    get:
+      summary: Get 7-day weather forecast
+      description: Returns a 7-day weather forecast for a given latitude and longitude.
+      operationId: getWeeklyForecast
+      parameters:
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+            format: double
+          description: Latitude of the location.
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+            format: double
+          description: Longitude of the location.
+        - in: query
+          name: units
+          required: false
+          schema:
+            type: string
+            enum:
+              - metric
+              - imperial
+            default: metric
+          description: Units for temperature (metric or imperial).
+      responses:
+        '200':
+          description: A 7-day weather forecast.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResponse'
+        '400':
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: External weather service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     Location:
@@ -83,3 +132,29 @@ components:
       properties:
         error:
           type: string
+    ForecastResponse:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        units:
+          type: string
+        forecast:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              weather_code:
+                type: integer
+              temperature:
+                type: object
+                properties:
+                  max:
+                    type: number
+                  min:
+                    type: number

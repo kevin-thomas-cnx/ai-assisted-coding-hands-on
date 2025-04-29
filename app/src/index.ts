@@ -3,6 +3,7 @@ import swaggerUi from 'swagger-ui-express';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import locationRoutes from './api/routes/locationRoutes';
+import forecastRoutes from './api/routes/forecastRoutes';
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -17,8 +18,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // Register routes
 app.use('/api/v1', locationRoutes);
+app.use('/api/v1', forecastRoutes);
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     console.log(`📚[docs]: API docs available at http://localhost:${port}/api-docs`);
 });
+
