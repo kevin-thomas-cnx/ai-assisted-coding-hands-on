@@ -1,5 +1,6 @@
 import express from 'express';
 import { getWeeklyForecast } from '../controllers/forecastController';
+import { validateQueryParams } from '../../middleware/validateParams';
 
 /**
  * Router for handling forecast-related API routes.
@@ -14,6 +15,6 @@ const router = express.Router();
  * 
  * Route to fetch the weekly weather forecast for a given location.
  */
-router.get('/forecast/week', getWeeklyForecast);
+router.get('/forecast/week', validateQueryParams(['latitude', 'longitude']), getWeeklyForecast);
 
 export default router;

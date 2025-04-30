@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { fetchWeeklyForecast } from '../../services/forecastService';
+import { handleErrorResponse } from '../../utils/errorHandler';
 
 /**
  * Handles the HTTP request to fetch the weekly weather forecast.
@@ -28,7 +29,7 @@ export const getWeeklyForecast = async (req: Request, res: Response): Promise<vo
     const { latitude, longitude, units = 'metric' } = req.query;
 
     if (!latitude || !longitude) {
-        res.status(400).json({ error: 'Latitude and longitude are required.' });
+        handleErrorResponse(res, 400, 'Latitude and longitude are required.');
         return;
     }
 
@@ -41,9 +42,10 @@ export const getWeeklyForecast = async (req: Request, res: Response): Promise<vo
         res.status(200).json(forecast);
     } catch (error: any) {
         if (error.status === 503) {
-            res.status(503).json({ error: 'Weather service is unavailable.' });
+            handleErrorResponse(res, 503, 'Weather service is unavailable.');
         } else {
-            res.status(500).json({ error: 'An unexpected error occurred.' });
+            handleErrorResponse(res, 500, 'An unexpected error occurred.');
         }
     }
 };
+

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { LocationService } from '../../services/locationService';
 import { HttpError } from '../../utils/errors';
+import { handleErrorResponse } from '../../utils/errorHandler';
 
 /**
  * Controller for handling location-related API requests.
@@ -36,7 +37,7 @@ export class LocationController {
             const query = req.query.query as string;
 
             if (!query) {
-                res.status(400).json({ error: 'Query parameter is required' });
+                handleErrorResponse(res, 400, 'Query parameter is required');
                 return;
             }
 
@@ -44,10 +45,11 @@ export class LocationController {
             res.status(200).json({ locations });
         } catch (error) {
             if (error instanceof HttpError) {
-                res.status(error.status).json({ error: error.message });
+                handleErrorResponse(res, error.status, error.message);
             } else {
-                res.status(500).json({ error: 'An unexpected error occurred' });
+                handleErrorResponse(res, 500, 'An unexpected error occurred');
             }
         }
     }
 }
+

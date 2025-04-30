@@ -13,7 +13,11 @@ type MockExpress = {
 // Use an interface instead of a type to allow for function and property combination
 interface MockExpressFactory extends jest.Mock<MockExpress> {
     json: jest.Mock;
+    Router: jest.Mock;
 }
+
+// Mock forecastRoutes
+jest.mock('../../../src/api/routes/forecastRoutes', () => 'forecastRoutesMock');
 
 jest.mock('express', () => {
     const useMock = jest.fn();
@@ -22,18 +26,25 @@ jest.mock('express', () => {
         return { close: jest.fn() };
     });
     const disableMock = jest.fn();
+    
+    // Create a Router mock function
+    const routerMock = jest.fn().mockReturnValue({
+        get: jest.fn(),
+        use: jest.fn()
+    });
 
-    // Create the express mock function
+    // Create the express mock function with appropriate structure
     const expressMock: any = jest.fn(() => ({
         use: useMock,
         listen: listenMock,
-        disable: disableMock
+        disable: disableMock,
     }));
 
-    // Add the json property to the function
+    // Add the json and Router properties
     expressMock.json = jest.fn(() => 'jsonMiddleware');
+    expressMock.Router = routerMock;
 
-    return expressMock as MockExpressFactory;
+    return expressMock;
 });
 
 jest.mock('swagger-ui-express', () => ({
@@ -97,6 +108,7 @@ describe('Server Initialization', () => {
 
     it('should register API routes', () => {
         expect(app.use).toHaveBeenCalledWith('/api/v1', 'locationRoutesMock');
+        expect(app.use).toHaveBeenCalledWith('/api/v1', 'forecastRoutesMock');
     });
 
     it('should start the server on the specified port', () => {
@@ -130,6 +142,10 @@ describe('Server Initialization', () => {
             });
             const useMock = jest.fn();
             const disableMock = jest.fn();
+            const routerMock = jest.fn().mockReturnValue({
+                get: jest.fn(),
+                use: jest.fn()
+            });
 
             // Create express mock with the correct structure
             const mockExpressFn: any = jest.fn(() => ({
@@ -138,12 +154,14 @@ describe('Server Initialization', () => {
                 disable: disableMock
             }));
             mockExpressFn.json = jest.fn(() => 'jsonMiddleware');
+            mockExpressFn.Router = routerMock;
 
             // Mock the modules
             jest.doMock('express', () => mockExpressFn);
             jest.doMock('fs', () => ({ readFileSync: jest.fn(() => 'yaml-content') }));
             jest.doMock('js-yaml', () => ({ load: jest.fn(() => ({ info: { title: 'API Docs' } })) }));
             jest.doMock('../../../src/api/routes/locationRoutes', () => 'locationRoutesMock');
+            jest.doMock('../../../src/api/routes/forecastRoutes', () => 'forecastRoutesMock');
 
             // Load the index.ts file to run the code
             require('../../../src/index');

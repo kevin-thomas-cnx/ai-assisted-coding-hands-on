@@ -2,10 +2,16 @@
 import { Router } from 'express';
 import { LocationController } from '../../../../src/api/controllers/locationController';
 import { Router as ExpressRouter } from 'express';
+import { validateQueryParams } from '../../../../src/middleware/validateParams';
 
 // Set up mock functions
 const getMock = jest.fn();
 const bindMock = jest.fn().mockReturnValue('boundSearchLocations');
+
+// Mock validateQueryParams middleware
+jest.mock('../../../../src/middleware/validateParams', () => ({
+    validateQueryParams: jest.fn(() => 'mockValidateMiddleware')
+}));
 
 // Mock Express Router
 jest.mock('express', () => ({
@@ -45,8 +51,10 @@ describe('Location Routes', () => {
     it('should register the search route with the correct path', () => {
         expect(getMock).toHaveBeenCalledWith(
             '/locations/search',
+            'mockValidateMiddleware',
             'boundSearchLocations'
         );
+        expect(validateQueryParams).toHaveBeenCalledWith(['query']);
     });
 
     it('should bind the controller method to maintain context', () => {

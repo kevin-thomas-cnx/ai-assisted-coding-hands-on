@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { LocationController } from '../controllers/locationController';
+import { validateQueryParams } from '../../middleware/validateParams';
 
 /**
  * Router for handling location-related API routes.
@@ -15,6 +16,6 @@ const locationController = new LocationController();
  * 
  * Route to search for locations based on a query string.
  */
-router.get('/locations/search', locationController.searchLocations.bind(locationController));
+router.get('/locations/search', validateQueryParams(['query']), locationController.searchLocations.bind(locationController));
 
 export default router;
