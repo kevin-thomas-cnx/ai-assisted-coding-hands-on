@@ -1,4 +1,4 @@
-import { fetchWeeklyForecast } from '../../src/services/forecastService';
+import { fetchWeeklyForecast } from '../../../../src/services/forecastService';
 import axios from 'axios';
 
 jest.mock('axios');
