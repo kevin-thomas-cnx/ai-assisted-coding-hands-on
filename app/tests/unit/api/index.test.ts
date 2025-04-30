@@ -3,31 +3,37 @@ import swaggerUi from 'swagger-ui-express';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
-// Define proper types for mocks
+// Update the MockExpressFactory type definition
 type MockExpress = {
     use: jest.Mock;
     listen: jest.Mock;
+    disable: jest.Mock;
 };
 
-type MockExpressFactory = jest.Mock<MockExpress> & {
+// Use an interface instead of a type to allow for function and property combination
+interface MockExpressFactory extends jest.Mock<MockExpress> {
     json: jest.Mock;
-};
+}
 
-// Mock dependencies with correct typing
 jest.mock('express', () => {
     const useMock = jest.fn();
     const listenMock = jest.fn().mockImplementation((port, callback) => {
         if (callback) callback();
         return { close: jest.fn() };
     });
+    const disableMock = jest.fn();
 
-    const expressMock = jest.fn(() => ({
+    // Create the express mock function
+    const expressMock: any = jest.fn(() => ({
         use: useMock,
-        listen: listenMock
-    })) as MockExpressFactory;
+        listen: listenMock,
+        disable: disableMock
+    }));
 
+    // Add the json property to the function
     expressMock.json = jest.fn(() => 'jsonMiddleware');
-    return expressMock;
+
+    return expressMock as MockExpressFactory;
 });
 
 jest.mock('swagger-ui-express', () => ({
@@ -111,45 +117,42 @@ describe('Server Initialization', () => {
         const originalEnv = process.env.PORT;
 
         try {
-            // Reset mocks and modules
-            jest.clearAllMocks();
-            jest.resetModules();
-
-            // Set environment variable before mocking
+            // Set environment variable
             process.env.PORT = '4000';
 
-            // We need to redefine the entire express mock to capture the listen call
-            // with the correct port from our environment
+            // Reset modules
+            jest.resetModules();
+
+            // Create new mocks
             const listenMock = jest.fn().mockImplementation((port, callback) => {
                 if (callback) callback();
                 return { close: jest.fn() };
             });
-
             const useMock = jest.fn();
+            const disableMock = jest.fn();
 
-            // Override the express mock specifically for this test
-            jest.doMock('express', () => {
-                const expressMock = jest.fn(() => ({
-                    use: useMock,
-                    listen: listenMock
-                })) as MockExpressFactory;
+            // Create express mock with the correct structure
+            const mockExpressFn: any = jest.fn(() => ({
+                use: useMock,
+                listen: listenMock,
+                disable: disableMock
+            }));
+            mockExpressFn.json = jest.fn(() => 'jsonMiddleware');
 
-                expressMock.json = jest.fn(() => 'jsonMiddleware');
-                return expressMock;
-            });
+            // Mock the modules
+            jest.doMock('express', () => mockExpressFn);
+            jest.doMock('fs', () => ({ readFileSync: jest.fn(() => 'yaml-content') }));
+            jest.doMock('js-yaml', () => ({ load: jest.fn(() => ({ info: { title: 'API Docs' } })) }));
+            jest.doMock('../../../src/api/routes/locationRoutes', () => 'locationRoutesMock');
 
-            // Now require the index module with our new mock
-            jest.isolateModules(() => {
-                require('../../../src/index');
-            });
+            // Load the index.ts file to run the code
+            require('../../../src/index');
 
-            // Check that listen was called with port 4000 as a string
+            // Test that the correct port was used
             expect(listenMock).toHaveBeenCalledWith("4000", expect.any(Function));
         } finally {
-            // Restore original environment
+            // Cleanup
             process.env.PORT = originalEnv;
-
-            // Clear mocked modules to prevent affecting other tests
             jest.resetModules();
         }
     });

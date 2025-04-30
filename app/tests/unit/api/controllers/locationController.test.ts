@@ -79,4 +79,23 @@ describe('LocationController', () => {
         expect(statusSpy).toHaveBeenCalledWith(500);
         expect(jsonSpy).toHaveBeenCalledWith({ error: 'An unexpected error occurred' });
     });
+
+    it('should return the status code and message from an HttpError', async () => {
+        // Import HttpError if it's not already imported in the test file
+        const { HttpError } = require('../../../../src/utils/errors');
+
+        // Mock the service to throw an HttpError
+        jest.spyOn(LocationService.prototype, 'searchLocations')
+            .mockRejectedValue(new HttpError(404, 'Location not found'));
+
+        mockRequest = {
+            query: { query: 'NonExistentPlace' }
+        };
+
+        await controller.searchLocations(mockRequest as Request, mockResponse as Response);
+
+        // Check that the status and message from the HttpError are used
+        expect(statusSpy).toHaveBeenCalledWith(404);
+        expect(jsonSpy).toHaveBeenCalledWith({ error: 'Location not found' });
+    });
 });

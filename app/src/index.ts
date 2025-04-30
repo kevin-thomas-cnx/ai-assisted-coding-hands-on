@@ -5,6 +5,7 @@ import * as yaml from 'js-yaml';
 import locationRoutes from './api/routes/locationRoutes';
 
 const app: Express = express();
+app.disable('x-powered-by'); // Disable 'x-powered-by' header for security reasons
 const port = process.env.PORT ?? 3000;
 
 // Load OpenAPI specification
