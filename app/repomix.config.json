@@ -1,0 +1,9 @@
+{
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.test.js",
+    "**/__mocks__/**"
+  ]
+}

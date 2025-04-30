@@ -9,5 +9,12 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1'
-    }
+    },
+    collectCoverage: true, // Enable coverage collection
+    collectCoverageFrom: [
+        'src/**/*.ts',
+        '!**/node_modules/**', // Exclude node_modules
+        '!**/tests/**' // Exclude test files from coverage
+    ],
+    coverageDirectory: '<rootDir>/../coverage/unit', // Output directory for coverage reports
 };
