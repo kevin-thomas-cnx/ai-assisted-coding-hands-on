@@ -9,7 +9,7 @@ interface Location {
     country: string;
     latitude: number;
     longitude: number;
-    airportCode: string | null;
+    airportCode?: string | null;
 }
 
 export class LocationService {
