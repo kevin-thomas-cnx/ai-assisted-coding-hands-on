@@ -5,6 +5,12 @@ import * as yaml from 'js-yaml';
 import locationRoutes from './api/routes/locationRoutes';
 import forecastRoutes from './api/routes/forecastRoutes';
 
+/**
+ * Entry point for the application.
+ * 
+ * @remarks
+ * This file initializes the Express application, sets up middleware, and registers API routes.
+ */
 const app: Express = express();
 app.disable('x-powered-by'); // Disable 'x-powered-by' header for security reasons
 const port = process.env.PORT ?? 3000;
@@ -25,4 +31,3 @@ app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     console.log(`📚[docs]: API docs available at http://localhost:${port}/api-docs`);
 });
-
