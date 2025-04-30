@@ -1,4 +1,4 @@
-ls/**
+/**
  * Represents an HTTP error with a status code and message.
  */
 export class HttpError extends Error {
