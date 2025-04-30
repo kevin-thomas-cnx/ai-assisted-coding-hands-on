@@ -1,0 +1,281 @@
+================
+File: app/src/api/controllers/locationController.ts
+================
+import { Request, Response } from 'express';
+import { LocationService } from '../../services/locationService';
+
+export class LocationController {
+    private locationService: LocationService;
+
+    constructor() {
+        this.locationService = new LocationService();
+    }
+
+    async searchLocations(req: Request, res: Response): Promise<void> {
+        try {
+            const query = req.query.query as string;
+
+            if (!query) {
+                res.status(400).json({ error: 'Query parameter is required' });
+                return;
+            }
+
+            const locations = await this.locationService.searchLocations(query);
+            res.status(200).json({ locations });
+        } catch (error) {
+            res.status(500).json({ error: 'An unexpected error occurred' });
+        }
+    }
+}
+
+================
+File: app/src/api/routes/locationRoutes.ts
+================
+import { Router } from 'express';
+import { LocationController } from '../controllers/locationController';
+
+const router = Router();
+const locationController = new LocationController();
+
+router.get('/locations/search', locationController.searchLocations.bind(locationController));
+
+export default router;
+
+================
+File: app/src/services/locationService.ts
+================
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface Location {
+    id: string;
+    name: string;
+    type: string;
+    state: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    airportCode: string | null;
+}
+
+export class LocationService {
+    private locations: Location[];
+
+    constructor() {
+        const dataPath = path.resolve(__dirname, '../../data/locations.json');
+        const rawData = fs.readFileSync(dataPath, 'utf8');
+        this.locations = JSON.parse(rawData);
+    }
+
+    async searchLocations(query: string): Promise<Location[]> {
+        if (!query || query.trim() === '') {
+            throw { status: 400, message: 'Query parameter is missing or invalid.' };
+        }
+
+        const lowerCaseQuery = query.toLowerCase();
+        const results = this.locations.filter(location =>
+            location.name.toLowerCase().includes(lowerCaseQuery) ||
+            (location.airportCode && location.airportCode.toLowerCase().includes(lowerCaseQuery))
+        );
+
+        return results;
+    }
+}
+
+================
+File: app/src/index.ts
+================
+import express, { Express } from 'express';
+import swaggerUi from 'swagger-ui-express';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import locationRoutes from './api/routes/locationRoutes';
+
+const app: Express = express();
+const port = process.env.PORT || 3000;
+
+// Load OpenAPI specification
+const openApiSpec = yaml.load(fs.readFileSync('./specs/openai.yaml', 'utf8')) as object;
+
+app.use(express.json());
+
+// Serve API documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+
+// Register routes
+app.use('/api/v1', locationRoutes);
+
+app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+    console.log(`📚[docs]: API docs available at http://localhost:${port}/api-docs`);
+});
+
+================
+File: app/tests/unit/locationService.test.ts
+================
+import { LocationService } from '../../src/services/locationService';
+import * as fs from 'fs';
+
+jest.mock('fs');
+
+describe('LocationService', () => {
+    const mockLocations = [
+        {
+            id: '1',
+            name: 'New York',
+            type: 'city',
+            state: 'NY',
+            country: 'USA',
+            latitude: 40.7128,
+            longitude: -74.006,
+            airportCode: 'JFK',
+        },
+        {
+            id: '2',
+            name: 'Los Angeles',
+            type: 'city',
+            state: 'CA',
+            country: 'USA',
+            latitude: 34.0522,
+            longitude: -118.2437,
+            airportCode: 'LAX',
+        },
+        {
+            id: '3',
+            name: 'San Francisco',
+            type: 'city',
+            state: 'CA',
+            country: 'USA',
+            latitude: 37.7749,
+            longitude: -122.4194,
+            airportCode: null,
+        },
+    ];
+
+    beforeEach(() => {
+        jest.resetAllMocks();
+        (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(mockLocations));
+    });
+
+    it('should return matching locations based on name', async () => {
+        const locationService = new LocationService();
+        const result = await locationService.searchLocations('New York');
+        expect(result).toEqual([mockLocations[0]]);
+    });
+
+    it('should return matching locations based on airport code', async () => {
+        const locationService = new LocationService();
+        const result = await locationService.searchLocations('LAX');
+        expect(result).toEqual([mockLocations[1]]);
+    });
+
+    it('should return an empty array if no locations match the query', async () => {
+        const locationService = new LocationService();
+        const result = await locationService.searchLocations('Chicago');
+        expect(result).toEqual([]);
+    });
+
+    it('should perform a case-insensitive search', async () => {
+        const locationService = new LocationService();
+        const result = await locationService.searchLocations('new york');
+        expect(result).toEqual([mockLocations[0]]);
+    });
+
+    it('should throw a 400 error if the query is missing', async () => {
+        const locationService = new LocationService();
+        await expect(locationService.searchLocations('')).rejects.toEqual({
+            status: 400,
+            message: 'Query parameter is missing or invalid.',
+        });
+    });
+
+});
+
+================
+File: app/specs/openai.yaml
+================
+openapi: 3.0.0
+info:
+  title: Weather App API
+  description: This API allows users to search for locations across the US by city or airport name for weather forecast information lookup.
+  version: "1.0.1"
+servers:
+  - url: http://localhost:3000/api/v1
+paths:
+  /locations/search:
+    get:
+      summary: Search for locations by name
+      description: Searches for locations by city or airport name and returns detailed information about each matching location.
+      operationId: searchLocations
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: The city or airport name to search for.
+      responses:
+        '200':
+          description: A list of locations matching the search query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationsResponse'
+        '400':
+          description: Missing or invalid query parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No locations found matching the search query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - City
+            - Airport
+        state:
+          type: string
+        country:
+          type: string
+          default: "USA"
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        airportCode:
+          type: string
+          nullable: true
+    LocationsResponse:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string

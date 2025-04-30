@@ -1,0 +1,185 @@
+openapi: 3.0.0
+info:
+  title: Weather App API
+  description: This API allows users to search for locations across the US by city or airport name for weather forecast information lookup.
+  version: "1.0.1"
+servers:
+  - url: http://localhost:3000/api/v1
+paths:
+  /locations/search:
+    get:
+      summary: Search for locations by name
+      description: Searches for locations by city or airport name and returns detailed information about each matching location.
+      operationId: searchLocations
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: The city or airport name to search for.
+      responses:
+        '200':
+          description: A list of locations matching the search query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationsResponse'
+        '400':
+          description: Missing or invalid query parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No locations found matching the search query.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /forecast/week:
+    get:
+      summary: Get a 7-day weather forecast
+      description: Provides a 7-day weather forecast based on specified location coordinates, returning weather conditions and temperature ranges in a JSON format.
+      operationId: getWeeklyForecast
+      parameters:
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+            format: double
+          description: The latitude coordinate of the location.
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+            format: double
+          description: The longitude coordinate of the location.
+        - in: query
+          name: units
+          required: false
+          schema:
+            type: string
+            enum: [metric, imperial]
+            default: metric
+          description: The unit system for temperature values.
+      responses:
+        '200':
+          description: A 7-day weather forecast for the specified location.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyForecastResponse'
+        '400':
+          description: Missing or invalid coordinates.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Weather service is currently unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: An unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - City
+            - Airport
+        state:
+          type: string
+        country:
+          type: string
+          default: "USA"
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        airportCode:
+          type: string
+          nullable: true
+    LocationsResponse:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+    WeeklyForecastResponse:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        units:
+          type: string
+          enum: [metric, imperial]
+        forecast:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyForecast'
+    DailyForecast:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-04-30"
+        weather_code:
+          type: integer
+          description: Code representing the weather condition
+          example: 0
+        temperature:
+          type: object
+          properties:
+            max:
+              type: number
+              format: double
+              example: 22.5
+            min:
+              type: number
+              format: double
+              example: 15.3
+    WeatherCode:
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        '0': 'Clear sky'
+        '1': 'Mainly clear'
+        '2': 'Partly cloudy'
+        '3': 'Overcast'

@@ -1,0 +1,7 @@
+{
+  "entryPointStrategy": "expand",
+  "entryPoints": ["./src"],
+  "exclude": ["**/tests/**", "**/node_modules/**"],
+  "out": "docs",
+  "tsconfig": "./typedoc-tsconfig.json"
+}
