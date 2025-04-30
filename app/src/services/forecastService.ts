@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { HttpError } from '../utils/errors';
 
 const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
