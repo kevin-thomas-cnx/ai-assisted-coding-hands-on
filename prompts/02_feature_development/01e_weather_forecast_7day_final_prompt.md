@@ -952,6 +952,10 @@ components:
 * Update API documentation
 * Consider performance requirements
 * Follow existing coding standards
+* **Ensure type safety**:
+  * Use TypeScript's type system to enforce type safety throughout the codebase.
+  * Avoid using `any` and prefer `unknown` for error handling.
+  * Perform type checks and assertions where necessary.
 
 ## **Solution Guidelines**
 
@@ -962,5 +966,12 @@ components:
 * Include proper validation
 * Have comprehensive test coverage
 * Follow existing documentation standards
-* Meet all performance criteria
 * Follow the established code style
+* **Type Safety Best Practices**:
+  * Define and use interfaces and types for all data structures.
+  * Use `unknown` for error handling and perform type checks before accessing properties.
+  * Avoid using `any` as it bypasses TypeScript's type checking.
+  * Utilize TypeScript's utility types (e.g., `Partial`, `Pick`, `Omit`) to create flexible and reusable types.
+  * Ensure all function parameters and return types are explicitly typed.
+  * Use strict null checks and handle `null` and `undefined` values appropriately.
+  * Leverage TypeScript's `strict` mode for enhanced type safety.
