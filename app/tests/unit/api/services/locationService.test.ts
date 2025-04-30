@@ -1,4 +1,4 @@
-import { LocationService } from '../../src/services/locationService';
+import { LocationService } from '../../../../src/services/locationService';
 import * as fs from 'fs';
 
 jest.mock('fs');

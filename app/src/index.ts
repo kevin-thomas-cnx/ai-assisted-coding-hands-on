@@ -5,10 +5,10 @@ import * as yaml from 'js-yaml';
 import locationRoutes from './api/routes/locationRoutes';
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT ?? 3000;
 
 // Load OpenAPI specification
-const openApiSpec = yaml.load(fs.readFileSync('./specs/openai.yaml', 'utf8')) as object;
+const openApiSpec = yaml.load(fs.readFileSync('./specs/swagger.yaml', 'utf8')) as object;
 
 app.use(express.json());
 
