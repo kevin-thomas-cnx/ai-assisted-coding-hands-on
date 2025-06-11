@@ -1,0 +1,4 @@
+{
+    "sonarQubeUri": "https://sonarqube.dewey.local",
+    "projectKey": "weather-api"
+}
