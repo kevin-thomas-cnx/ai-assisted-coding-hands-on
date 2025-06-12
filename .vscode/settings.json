@@ -1,6 +1,5 @@
 {
-    "sonarlint.connectedMode.project": {
-        "connectionId": "Dewey Sonar",
-        "projectKey": "weather-api"
-    }
+    "npm.packageManager": "pnpm",
+    "npm.enableRunFromFolder": true,
+    "npm.scriptRunner": "pnpm"
 }

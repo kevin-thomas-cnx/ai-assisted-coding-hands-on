@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "pnpm: dev - app",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["dev"],
+			"options": {
+				"cwd": "app"
+			},
+			"problemMatcher": [],
+			"detail": "nodemon src/index.ts"
+		}
+	]
+}
